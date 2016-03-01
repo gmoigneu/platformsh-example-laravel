@@ -1,5 +1,12 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Platform.sh configuration
+|--------------------------------------------------------------------------
+*/
+$variables = json_decode(base64_decode(getenv("PLATFORM_VARIABLES")), true);
+
 return [
 
     /*
@@ -13,7 +20,7 @@ return [
     |
     */
 
-    'env' => env('APP_ENV', 'production'),
+    'env' => env('APP_ENV', ($variables && array_key_exists('APP_ENV', $variables)) ? $variables['APP_ENV'] : 'production'),
 
     /*
     |--------------------------------------------------------------------------
@@ -26,7 +33,7 @@ return [
     |
     */
 
-    'debug' => env('APP_DEBUG', false),
+    'debug' => env('APP_DEBUG', ($variables && array_key_exists('APP_DEBUG', $variables)) ? $variables['APP_DEBUG'] : false),
 
     /*
     |--------------------------------------------------------------------------
@@ -91,7 +98,7 @@ return [
     |
     */
 
-    'key' => env('APP_KEY'),
+    'key' => env('APP_KEY', ($variables && array_key_exists('APP_KEY', $variables)) ? $variables['APP_KEY'] : ''),
 
     'cipher' => 'AES-256-CBC',
 
@@ -108,7 +115,7 @@ return [
     |
     */
 
-    'log' => env('APP_LOG', 'single'),
+    'log' => env('APP_LOG', ($variables && array_key_exists('APP_LOG', $variables)) ? $variables['APP_LOG'] : 'single'),
 
     /*
     |--------------------------------------------------------------------------

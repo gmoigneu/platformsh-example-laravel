@@ -1,5 +1,29 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Platform.sh configuration
+|--------------------------------------------------------------------------
+*/
+$relationships = getenv("PLATFORM_RELATIONSHIPS");
+$database = false;
+$redis = false;
+if ($relationships) {
+    $relationships = json_decode(base64_decode($relationships), true);
+
+    foreach ($relationships['database'] as $endpoint) {
+        if (empty($endpoint['query']['is_master'])) {
+            continue;
+        }
+
+        $database = $endpoint;
+    }
+
+    if(array_key_exists('redis', $relationships)) {
+        $redis = $relationships['redis'][0];
+    }
+}
+
 return [
 
     /*
@@ -26,7 +50,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'mysql'),
+    'default' => env('DB_CONNECTION', ($database) ? $database['scheme'] : 'mysql'),
 
     /*
     |--------------------------------------------------------------------------
@@ -45,47 +69,19 @@ return [
     */
 
     'connections' => [
-
-        'sqlite' => [
-            'driver'   => 'sqlite',
-            'database' => database_path('database.sqlite'),
-            'prefix'   => '',
-        ],
-
         'mysql' => [
             'driver'    => 'mysql',
-            'host'      => env('DB_HOST', 'localhost'),
-            'database'  => env('DB_DATABASE', 'forge'),
-            'username'  => env('DB_USERNAME', 'forge'),
-            'password'  => env('DB_PASSWORD', ''),
+            'host'      => env('DB_HOST', ($database) ? $database['host'] : 'localhost'),
+            'port'      => env('DB_PORT', ($database) ? $database['port'] : '3306'),
+            'database'  => env('DB_DATABASE', ($database) ? $database['path'] : 'forge'),
+            'username'  => env('DB_USERNAME', ($database) ? $database['username'] : 'forge'),
+            'password'  => env('DB_PASSWORD', ($database) ? $database['password'] : 'forge'),
             'charset'   => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix'    => '',
             'strict'    => false,
             'engine'    => null,
         ],
-
-        'pgsql' => [
-            'driver'   => 'pgsql',
-            'host'     => env('DB_HOST', 'localhost'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
-            'charset'  => 'utf8',
-            'prefix'   => '',
-            'schema'   => 'public',
-        ],
-
-        'sqlsrv' => [
-            'driver'   => 'sqlsrv',
-            'host'     => env('DB_HOST', 'localhost'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
-            'charset'  => 'utf8',
-            'prefix'   => '',
-        ],
-
     ],
 
     /*
@@ -117,9 +113,9 @@ return [
         'cluster' => false,
 
         'default' => [
-            'host'     => env('REDIS_HOST', 'localhost'),
+            'host'     => env('REDIS_HOST', ($redis) ? $redis['host'] : 'localhost'),
             'password' => env('REDIS_PASSWORD', null),
-            'port'     => env('REDIS_PORT', 6379),
+            'port'     => env('REDIS_PORT', ($redis) ? $redis['port'] : 6379),
             'database' => 0,
         ],
 
